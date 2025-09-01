@@ -1,0 +1,104 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+const allPosts = await getCollection('blog');
+const sortedPosts = allPosts
+  .filter(post => !post.data.draft)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+
+<Layout title="Blog">
+  <div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200">
+      <div class="max-w-6xl mx-auto px-4 py-8">
+        <nav class="mb-6">
+          <a href="/" class="text-primary-600 hover:text-primary-700 font-medium">
+            ← Back to Home
+          </a>
+        </nav>
+        
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">
+          Blog Posts
+        </h1>
+        
+        <p class="text-xl text-gray-600">
+          Thoughts, tutorials, and insights about web development and technology.
+        </p>
+      </div>
+    </header>
+
+    <!-- Blog Posts -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+      {sortedPosts.length === 0 ? (
+        <div class="text-center py-12">
+          <p class="text-gray-500 text-lg">No blog posts found.</p>
+        </div>
+      ) : (
+        <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {sortedPosts.map((post) => {
+            const formattedDate = new Intl.DateTimeFormat('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }).format(post.data.date);
+            
+            return (
+              <article class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                <div class="p-6">
+                  <h2 class="text-xl font-bold text-gray-900 mb-3">
+                    <a href={`/blog/${post.slug}`} class="hover:text-primary-600 transition-colors">
+                      {post.data.title}
+                    </a>
+                  </h2>
+                  
+                  <p class="text-gray-600 mb-4 line-clamp-3">
+                    {post.data.description}
+                  </p>
+                  
+                  <div class="flex flex-col gap-3">
+                    <time class="text-sm text-gray-500" datetime={post.data.date.toISOString()}>
+                      {formattedDate}
+                    </time>
+                    
+                    {post.data.tags.length > 0 && (
+                      <div class="flex flex-wrap gap-2">
+                        {post.data.tags.slice(0, 3).map(tag => (
+                          <span class="px-2 py-1 bg-primary-100 text-primary-700 rounded-full text-xs font-medium">
+                            {tag}
+                          </span>
+                        ))}
+                        {post.data.tags.length > 3 && (
+                          <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs">
+                            +{post.data.tags.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <a 
+                    href={`/blog/${post.slug}`}
+                    class="inline-block mt-4 text-primary-600 hover:text-primary-700 font-medium text-sm"
+                  >
+                    Read more →
+                  </a>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </main>
+  </div>
+</Layout>
+
+<style>
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
